@@ -49,7 +49,7 @@ pub mod prelude {
         CachableObstacle, NavMeshBundle, NavMeshSettings, NavMeshStatus, NavMeshUpdateMode,
         NavMeshUpdateModeBlocking, NavmeshUpdaterPlugin, NAVMESH_BUILD_DURATION,
     };
-    pub use crate::{NavMesh, Triangulation, VleueNavigatorPlugin};
+    pub use crate::{NavMeshWrapper, NavMesh, Triangulation, VleueNavigatorPlugin};
     #[cfg(feature = "debug-with-gizmos")]
     pub use crate::{NavMeshDebug, NavMeshesDebug};
 }
@@ -112,6 +112,10 @@ pub(crate) struct BuildingMesh {
     pub(crate) mesh: polyanya::Mesh,
     pub(crate) failed_stitches: Vec<(u8, u8)>,
 }
+
+/// Wrapper for a [`NavMesh`] Handle.
+#[derive(Component, Debug, Default)]
+pub struct NavMeshWrapper(pub Handle<NavMesh>);
 
 /// A navigation mesh
 #[derive(Debug, TypePath, Clone, Asset)]
@@ -270,9 +274,12 @@ impl NavMesh {
     ///
     /// Inputs and results are transformed using the [`NavMesh::transform`]
     pub fn transformed_path(&self, from: Vec3, to: Vec3) -> Option<TransformedPath> {
-        let inner_from = self.world_to_mesh().transform_point(from).xy();
-        let inner_to = self.world_to_mesh().transform_point(to).xy();
+        let f = self.world_to_mesh().transform_point(from);
+        let t = self.world_to_mesh().transform_point(to);
+        let inner_from = f.xy();
+        let inner_to = t.xy();
         let path = self.mesh.path(inner_from, inner_to);
+
         path.map(|path| self.transform_path(path))
     }
 
@@ -403,7 +410,7 @@ fn get_vectors(
 /// System displaying navmeshes using gizmos for debug purposes.
 pub fn display_navmesh(
     live_navmeshes: Query<(
-        &Handle<NavMesh>,
+        &NavMeshWrapper,
         Option<&NavMeshDebug>,
         &bevy::prelude::GlobalTransform,
         &updater::NavMeshSettings,
@@ -419,7 +426,7 @@ pub fn display_navmesh(
         else {
             continue;
         };
-        if let Some(navmesh) = navmeshes.get(mesh) {
+        if let Some(navmesh) = navmeshes.get(&mesh.0) {
             let navmesh = navmesh.get();
             let Some(layer) = &navmesh.layers.get(settings.layer.unwrap_or(0) as usize) else {
                 continue;

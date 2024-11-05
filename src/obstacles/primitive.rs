@@ -168,8 +168,8 @@ impl ObstacleSource for PrimitiveObstacle {
                 .map(|p| {
                     copypasta::single_circle_coordinate(
                         primitive.circumcircle.radius,
-                        primitive.sides as u32,
-                        p,
+                        primitive.sides,
+                        p as usize,
                     )
                 })
                 .map(|v| to_navmesh(to_world(v)))

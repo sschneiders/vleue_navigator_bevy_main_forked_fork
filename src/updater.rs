@@ -16,7 +16,7 @@ use bevy::{
 };
 use polyanya::{Layer, Mesh, Triangulation};
 
-use crate::{obstacles::ObstacleSource, NavMesh};
+use crate::{obstacles::ObstacleSource, NavMesh, NavMeshWrapper};
 
 /// A Marker component for an obstacle that can be cached.
 ///
@@ -32,8 +32,8 @@ pub struct NavMeshBundle {
     pub settings: NavMeshSettings,
     /// The current status of the last [`NavMesh`] update.
     pub status: NavMeshStatus,
-    /// A handle to the [`NavMesh`] asset.
-    pub handle: Handle<NavMesh>,
+    /// A wrapper for handle to the [`NavMesh`] asset.
+    pub handle: NavMeshWrapper,
     /// The local transform of the [`NavMesh`], used to convert points in 3D space to the [`NavMesh`] 2D space.
     ///
     /// When using methods like [`NavMesh::transformed_path`], this transform is used for conversion.
@@ -50,7 +50,7 @@ impl NavMeshBundle {
     /// If multiple [`NavMeshBundle`]s share the same handle, they will overwrite each other unless they target different layers as specified in their [`NavMeshSettings`].
     pub fn with_unique_id(id: u128) -> Self {
         Self {
-            handle: Handle::<NavMesh>::weak_from_u128(id),
+            handle: NavMeshWrapper(Handle::<NavMesh>::weak_from_u128(id)),
             ..Self::with_default_id()
         }
     }
@@ -263,7 +263,7 @@ fn drop_dead_tasks(
 ) {
     for (entity, mut status, settings) in &mut navmeshes {
         if status.is_changed() {
-            task_ages.insert(entity, time.elapsed_seconds());
+            task_ages.insert(entity, time.elapsed_secs());
         } else if let Some(age) = task_ages.get(&entity).cloned() {
             if settings.is_changed() {
                 *status = NavMeshStatus::Cancelled;
@@ -273,7 +273,7 @@ fn drop_dead_tasks(
             let Some(timeout) = settings.build_timeout else {
                 continue;
             };
-            if time.elapsed_seconds() - age > timeout {
+            if time.elapsed_secs() - age > timeout {
                 *status = NavMeshStatus::Failed;
                 commands.entity(entity).remove::<NavmeshUpdateTask>();
                 task_ages.remove(&entity);
@@ -335,7 +335,7 @@ fn trigger_navmesh_build<Marker: Component, Obstacle: ObstacleSource>(
     let mut retrigger = vec![];
     for key in keys {
         let val = ready_to_update.get_mut(&key).unwrap();
-        val.0 -= time.delta_seconds();
+        val.0 -= time.delta_secs();
         if val.0 < 0.0 {
             if val.1 {
                 retrigger.push(key);
@@ -469,7 +469,7 @@ type NavMeshWaitingUpdateQuery<'world, 'state, 'a, 'b, 'c, 'd, 'e> = Query<
     'state,
     (
         Entity,
-        &'a Handle<NavMesh>,
+        &'a NavMeshWrapper,
         &'b NavmeshUpdateTask,
         &'c GlobalTransform,
         &'d mut NavMeshStatus,
@@ -500,7 +500,7 @@ fn update_navmesh_asset(
             }
             debug!(
                 "navmesh {:?} ({:?}) built{}",
-                handle,
+                handle.0,
                 entity,
                 if let Some(layer) = &settings.layer {
                     format!(" (layer {})", layer)
@@ -509,7 +509,7 @@ fn update_navmesh_asset(
                 }
             );
             let (previous_navmesh_transform, mut mesh, mut previously_failed) =
-                if let Some(navmesh) = navmeshes.get(handle) {
+                if let Some(navmesh) = navmeshes.get(&handle.0) {
                     if let Some(mesh) = navmesh.building.as_ref() {
                         (
                             navmesh.transform(),
@@ -583,7 +583,7 @@ fn update_navmesh_asset(
                     if indices_from.len() != indices_to.len() {
                         debug!(
                             "navmesh {:?} ({:?}) layer {} update: error stitching to layer {:?} (different number of stitching points on each side)",
-                            handle, entity, layer_id, target_layer
+                            handle.0, entity, layer_id, target_layer
                         );
                         *status = NavMeshStatus::Failed;
                         failed_stitches.push((*layer_id, *target_layer));
@@ -601,7 +601,7 @@ fn update_navmesh_asset(
                         {
                             debug!(
                                 "navmesh {:?} ({:?}) layer {} update: error stitching to layer {:?} (stitching points don't match)",
-                                handle, entity, layer_id, target_layer
+                                handle.0, entity, layer_id, target_layer
                             );
                             *status = NavMeshStatus::Failed;
                             failed_stitches.push((*layer_id, *target_layer));
@@ -624,8 +624,8 @@ fn update_navmesh_asset(
                     } else {
                         navmesh.set_transform(previous_navmesh_transform);
                     }
-                    navmeshes.insert(handle, navmesh);
-                } else if let Some(navmesh) = navmeshes.get_mut(handle) {
+                    navmeshes.insert(&handle.0, navmesh);
+                } else if let Some(navmesh) = navmeshes.get_mut(&handle.0) {
                     failed_stitches.extend(previously_failed);
                     failed_stitches.sort_unstable();
                     failed_stitches.dedup();
@@ -635,14 +635,14 @@ fn update_navmesh_asset(
                     });
                 } else {
                     let navmesh = NavMesh::from_polyanya_mesh(mesh);
-                    navmeshes.insert(handle, navmesh);
+                    navmeshes.insert(&handle.0, navmesh);
                     *status = NavMeshStatus::Invalid;
                 }
             } else {
                 mesh.layers = vec![layer];
                 let mut navmesh = NavMesh::from_polyanya_mesh(mesh);
                 navmesh.set_transform(global_transform.compute_transform());
-                navmeshes.insert(handle, navmesh);
+                navmeshes.insert(&handle.0, navmesh);
                 *status = NavMeshStatus::Built;
             }
             diagnostics.add_measurement(&NAVMESH_BUILD_DURATION, || duration.as_secs_f64());
