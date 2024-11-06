@@ -711,13 +711,13 @@ impl<Obstacle: ObstacleSource, Marker: Component> Plugin
 
         #[cfg(feature = "avian2d")]
         {
-            app.observe(crate::obstacles::avian2d::on_sleeping_inserted)
-                .observe(crate::obstacles::avian2d::on_sleeping_removed);
+            app.add_observe(crate::obstacles::avian2d::on_sleeping_inserted)
+                .add_observe(crate::obstacles::avian2d::on_sleeping_removed);
         }
         #[cfg(feature = "avian3d")]
         {
-            app.observe(crate::obstacles::avian3d::on_sleeping_inserted)
-                .observe(crate::obstacles::avian3d::on_sleeping_removed);
+            app.add_observe(crate::obstacles::avian3d::on_sleeping_inserted)
+                .add_observe(crate::obstacles::avian3d::on_sleeping_removed);
         }
     }
 }
