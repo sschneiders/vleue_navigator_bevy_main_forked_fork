@@ -29,7 +29,8 @@ default-features = false
 optional = true
 
 [dependencies.polyanya]
-version = "0.11.1"
+git = "https://github.com/sschneiders/polyanya"
+branch = "main"
 
 [dependencies.bevy]
 version = "0.15.0-rc.3"
