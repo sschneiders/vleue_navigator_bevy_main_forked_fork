@@ -23,7 +23,8 @@ default-features = false
 optional = true
 
 [dependencies.avian3d]
-version = "0.1"
+branch = "main"
+git = "https://github.com/sschneiders/avian"
 features = ["3d", "f32", "parry-f32"]
 default-features = false
 optional = true
