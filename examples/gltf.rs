@@ -79,7 +79,8 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
         ..Default::default()
     });
 
-    commands.spawn(TextBundle {
+    //TODO fix ui
+    /*commands.spawn(TextBundle {
         style: Style {
             align_self: AlignSelf::FlexStart,
             margin: UiRect::all(Val::Px(15.0)),
@@ -123,7 +124,7 @@ fn setup(mut commands: Commands, asset_server: Res<AssetServer>) {
             ..Default::default()
         },
         ..Default::default()
-    });
+    });*/
 
     commands.insert_resource(CurrentMesh(HANDLE_TRIMESH_OPTIMIZED));
 }
@@ -153,8 +154,6 @@ struct Target;
 #[derive(Component)]
 struct Hover(Vec2);
 
-#[derive(Component, Clone)]
-struct NavMeshDisp(Handle<NavMesh>);
 
 fn setup_scene(
     mut commands: Commands,
@@ -246,7 +245,7 @@ fn setup_scene(
                     visibility: Visibility::Hidden,
                     ..Default::default()
                 },
-                NavMeshDisp(HANDLE_TRIMESH_OPTIMIZED),
+                NavMeshComponent(HANDLE_TRIMESH_OPTIMIZED),
             ));
             navmeshes.insert(&HANDLE_TRIMESH_OPTIMIZED, navmesh);
         }
@@ -442,7 +441,7 @@ fn move_object(
 }
 
 fn trigger_navmesh_visibility(
-    mut query: Query<(&mut Visibility, &NavMeshDisp)>,
+    mut query: Query<(&mut Visibility, &NavMeshComponent)>,
     keyboard_input: ResMut<ButtonInput<KeyCode>>,
     current_mesh: Res<CurrentMesh>,
 ) {

@@ -1,6 +1,6 @@
 [package]
 name = "vleue_navigator"
-version = "0.10.2"
+version = "0.11.0"
 authors = ["François Mockers <francois.mockers@vleue.com>"]
 edition = "2021"
 license = "MIT OR Apache-2.0"
@@ -32,7 +32,7 @@ optional = true
 version = "0.11.1"
 
 [dependencies.bevy]
-version = "0.15.0-rc.2"
+version = "0.15.0-rc.3"
 features = ["bevy_render", "bevy_asset"]
 default-features = false
 
@@ -40,7 +40,7 @@ default-features = false
 rand = "0.8"
 
 [dev-dependencies.bevy]
-version = "0.15.0-rc.2"
+version = "0.15.0-rc.3"
 features = [
     "bevy_ui",
     "bevy_text",
@@ -99,9 +99,9 @@ features = ["detailed-layers"]
 
 
 [patch.crates-io]
-avian2d = { git = "https://github.com/Jondolf/avian", branch = "main" }
-avian3d = { git = "https://github.com/Jondolf/avian", branch = "main" }
-polyanya = { git = "https://github.com/slyedoc/polyanya", branch = "bevy_main" }
+avian2d = { branch = "main", git = "https://github.com/sschneiders/avian" }
+avian3d = { branch = "main", git = "https://github.com/sschneiders/avian" }
+polyanya = { git = "https://github.com/sschneiders/polyanya", branch = "main" }
 
-[patch.'https://github.com/mockersf/bvh2d']
-bvh2d = { version = "0.5", git = "https://github.com/slyedoc/bvh2d", branch = "bevy_main" }
+#[patch.'https://github.com/mockersf/bvh2d']
+#bvh2d = { version = "0.5", git = "https://github.com/slyedoc/bvh2d", branch = "bevy_main" }

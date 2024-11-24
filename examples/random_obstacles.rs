@@ -108,7 +108,8 @@ fn on_mesh_change(
     if let Ok(entity) = text.get_single() {
         commands.entity(entity).despawn_recursive();
     }
-    commands.spawn(TextBundle {
+    //TODO add ui
+    /*commands.spawn(TextBundle {
         text: Text::from_sections([
             TextSection::new(
                 "Random Triangle Obstacles\n",
@@ -146,6 +147,7 @@ fn on_mesh_change(
         },
         ..default()
     });
+     */
 }
 
 fn mesh_change(

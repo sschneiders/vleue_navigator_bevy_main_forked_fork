@@ -182,6 +182,8 @@ fn on_mesh_change(
     if let Ok(entity) = text.get_single() {
         commands.entity(entity).despawn_recursive();
     }
+    //TODO add ui
+    /*
     commands.spawn(TextBundle {
         text: Text::from_sections([
             TextSection::new(
@@ -224,6 +226,7 @@ fn on_mesh_change(
         },
         ..default()
     });
+     */
 }
 
 fn mesh_change(mut mesh: ResMut<MeshDetails>, keyboard_input: Res<ButtonInput<KeyCode>>) {
@@ -253,7 +256,7 @@ fn on_click(
         let window = primary_window.single();
         if let Some(position) = window
             .cursor_position()
-            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor))
+            .and_then(|cursor| camera.viewport_to_world(camera_transform, cursor).ok())
             .map(|ray| ray.origin.truncate())
         {
             let screen = Vec2::new(window.width(), window.height());

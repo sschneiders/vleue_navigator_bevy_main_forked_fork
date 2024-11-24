@@ -179,7 +179,8 @@ fn on_mesh_change(
             if let Ok(entity) = text.get_single() {
                 commands.entity(entity).despawn();
             }
-            commands.spawn(TextBundle {
+            //TODO add ui
+            /*commands.spawn(TextBundle {
                 text: Text::from_sections([
                     TextSection::new(
                         match mesh.mesh {
@@ -221,6 +222,7 @@ fn on_mesh_change(
                 },
                 ..default()
             });
+             */
         } else {
             *wait_for_mesh = true;
         }
